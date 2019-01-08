@@ -22,6 +22,7 @@ import csv
 import os
 import logging
 import argparse
+import re
 import random
 from tqdm import tqdm, trange
 
@@ -92,8 +93,30 @@ class DataProcessor(object):
         """Reads a tab separated value file."""
         file_in = open(input_file, "rb")
         lines = []
+        intent = ""
         for line in file_in:
-            lines.append(line.decode("gbk").split("\t"))
+            # lines.append(line.decode("gbk").split("\t"))
+            split_line = line.decode("utf-8").split("\t")
+
+            if len(split_line[0]) != 0:
+                intent = split_line[0].replace("intent:", "")
+                split_line[0] = intent
+                print(intent)
+            else:
+                split_line[0] = intent
+
+            text = split_line[1]
+            text = text.replace('（', '(')
+            text = text.replace('）', ')')
+            text = text.replace(' ', '')
+            text = text.replace('[', '')
+            text = text.replace(']', '')
+            text = text.replace('\r\n', '')
+            text = re.sub("\(([^)]*)\)", "", text)
+            text = text.replace("...", str(random.randint(0, 30)))
+            split_line[1] = text
+            print(split_line)
+            lines.append(split_line)
         return lines
 
 class NewsProcessor(DataProcessor):
